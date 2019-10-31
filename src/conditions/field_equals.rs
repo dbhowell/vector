@@ -18,12 +18,6 @@ fn default_field() -> Atom {
     "message".into()
 }
 
-impl Into<Box<dyn Condition>> for FieldEqualsConfig {
-    fn into(self) -> Box<dyn Condition> {
-        Box::new(self)
-    }
-}
-
 impl Condition for FieldEqualsConfig {
     fn check(&self, event: &Event) -> Result<bool, String> {
         event
@@ -54,7 +48,10 @@ mod test {
 
         assert_eq!(
             Ok(false),
-            config_false.component.check(&Event::from("baz".to_owned()))
+            config_false
+                .component
+                .inner
+                .check(&Event::from("baz".to_owned()))
         );
 
         let config_err: ConditionConfig = toml::from_str(
@@ -70,6 +67,7 @@ mod test {
             Err("field 'doesntexist' not found".to_owned()),
             config_err
                 .component
+                .inner
                 .check(&Event::from("foo bar".to_owned()))
         );
 
@@ -83,7 +81,10 @@ mod test {
 
         assert_eq!(
             Ok(true),
-            config_true.component.check(&Event::from("baz".to_owned()))
+            config_true
+                .component
+                .inner
+                .check(&Event::from("baz".to_owned()))
         );
     }
 

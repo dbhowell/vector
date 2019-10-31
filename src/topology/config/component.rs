@@ -99,7 +99,10 @@ pub struct ComponentBuilder<T: Sized> {
 }
 
 impl<T: Sized> ComponentBuilder<T> {
-    pub fn new<'de, B: Clone + Serialize + Deserialize<'de> + Into<T>>(name: &'static str) -> Self {
+    pub fn new<'de, B>(name: &'static str) -> Self
+    where
+        B: Clone + Into<T> + Serialize + Deserialize<'de>,
+    {
         ComponentBuilder {
             name: name,
             from_value: |value| {

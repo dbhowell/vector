@@ -11,12 +11,6 @@ pub struct StaticConfig {
     value: bool,
 }
 
-impl Into<Box<dyn Condition>> for StaticConfig {
-    fn into(self) -> Box<dyn Condition> {
-        Box::new(self)
-    }
-}
-
 impl Condition for StaticConfig {
     fn check(&self, _: &Event) -> Result<bool, String> {
         return Ok(self.value);
@@ -45,6 +39,7 @@ mod test {
             Ok(false),
             config_false
                 .component
+                .inner
                 .check(&Event::from("foo bar baz".to_owned()))
         );
 
@@ -60,6 +55,7 @@ mod test {
             Ok(true),
             config_true
                 .component
+                .inner
                 .check(&Event::from("foo bar baz".to_owned()))
         );
     }

@@ -5,13 +5,28 @@ use inventory;
 pub mod field_equals;
 pub mod static_value;
 
-pub type ConditionDefinition = ComponentBuilder<Box<dyn Condition>>;
-
-pub type ConditionConfig = ComponentConfig<Box<dyn Condition>>;
-
 pub trait Condition {
     fn check(&self, e: &Event) -> Result<bool, String>;
 }
+
+/// Provides the double jump from `T: Condition` to `Box<dyn Condition>`.
+pub struct BoxCondition {
+    pub inner: Box<dyn Condition>,
+}
+
+impl<T> From<T> for BoxCondition
+where
+    T: Condition + Send + Sync + 'static,
+{
+    fn from(inner: T) -> Self {
+        BoxCondition {
+            inner: Box::new(inner),
+        }
+    }
+}
+
+pub type ConditionDefinition = ComponentBuilder<BoxCondition>;
+pub type ConditionConfig = ComponentConfig<BoxCondition>;
 
 inventory::collect!(ConditionDefinition);
 
