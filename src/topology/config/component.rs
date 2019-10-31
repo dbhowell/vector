@@ -68,28 +68,29 @@ where
         D: Deserializer<'de>,
     {
         let mut swap_out = ConfigSwapOut::deserialize(deserializer)?;
-        match inventory::iter::<ComponentBuilder<T>>
+        inventory::iter::<ComponentBuilder<T>>
             .into_iter()
             .find(|t| t.name == swap_out.type_str)
-        {
-            Some(b) => match (b.from_value)(swap_out.nested.clone()) {
-                Ok((c, v_with_defaults)) => {
-                    swap_out.nested = v_with_defaults.unwrap_or(swap_out.nested);
-                    Ok(Self {
-                        swap_out: swap_out,
-                        component: c,
-                    })
-                }
-                Err(e) => Err(Error::custom(format!(
-                    "failed to parse type `{}`: {}",
-                    swap_out.type_str, e,
-                ))),
-            },
-            None => Err(Error::custom(format!(
+            .ok_or(Error::custom(format!(
                 "unrecognized type '{}'",
-                swap_out.type_str,
-            ))),
-        }
+                swap_out.type_str
+            )))
+            .and_then(|b| {
+                (b.from_value)(swap_out.nested.clone())
+                    .map_err(|e| {
+                        Error::custom(format!(
+                            "failed to parse type `{}`: {}",
+                            swap_out.type_str, e,
+                        ))
+                    })
+                    .map(|(c, v_with_defaults)| {
+                        swap_out.nested = v_with_defaults.unwrap_or(swap_out.nested);
+                        Self {
+                            swap_out: swap_out,
+                            component: c,
+                        }
+                    })
+            })
     }
 }
 
