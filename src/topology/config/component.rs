@@ -2,6 +2,7 @@ use inventory;
 use serde::de::{Deserializer, Error};
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use toml::Value;
 
 /// Combines a type field and a nested plugin config to create a table.
@@ -24,6 +25,17 @@ where
     swap_out: ConfigSwapOut,
 
     pub component: T,
+}
+
+impl<T> fmt::Debug for ComponentConfig<T>
+where
+    T: 'static + Sized,
+    inventory::iter<ComponentBuilder<T>>:
+        std::iter::IntoIterator<Item = &'static ComponentBuilder<T>>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.swap_out.fmt(f)
+    }
 }
 
 impl<T> ComponentConfig<T>
@@ -101,6 +113,21 @@ pub struct ComponentBuilder<T: Sized> {
 
 impl<T: Sized> ComponentBuilder<T> {
     pub fn new<'de, B>(name: &'static str) -> Self
+    where
+        B: Into<T> + Serialize + Deserialize<'de>,
+    {
+        ComponentBuilder {
+            name: name,
+            from_value: |value| {
+                value
+                    .try_into::<B>()
+                    .map(|c| (c.into(), None))
+                    .map_err(|e| format!("{}", e))
+            },
+        }
+    }
+
+    pub fn new_cloneable<'de, B>(name: &'static str) -> Self
     where
         B: Clone + Into<T> + Serialize + Deserialize<'de>,
     {

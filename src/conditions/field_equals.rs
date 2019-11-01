@@ -29,7 +29,7 @@ impl Condition for FieldEqualsConfig {
 }
 
 inventory::submit! {
-    ConditionDefinition::new::<FieldEqualsConfig>("field_equals")
+    ConditionDefinition::new_cloneable::<FieldEqualsConfig>("field_equals")
 }
 
 #[cfg(test)]
