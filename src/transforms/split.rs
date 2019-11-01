@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::{self, Event},
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     types::{parse_check_conversion_map, Conversion},
 };
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,10 @@ pub struct SplitConfig {
     pub types: HashMap<Atom, String>,
 }
 
-#[typetag::serde(name = "split")]
+inventory::submit! {
+    TransformConfigDefinition::new::<SplitConfig>("split")
+}
+
 impl TransformConfig for SplitConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         let field = self.field.as_ref().unwrap_or(&event::MESSAGE);

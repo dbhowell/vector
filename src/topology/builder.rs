@@ -137,7 +137,7 @@ pub fn build_pieces(config: &super::Config) -> Result<(Pieces, Vec<String>), Vec
     // Build transforms
     for (name, transform) in &config.transforms {
         let trans_inputs = &transform.inputs;
-        let mut transform = match transform.inner.build() {
+        let mut transform = match transform.inner.config().build() {
             Err(error) => {
                 errors.push(format!("Transform \"{}\": {}", name, error));
                 continue;

@@ -1,6 +1,6 @@
 use super::Transform;
 use crate::event::Event;
-use crate::topology::config::DataType;
+use crate::topology::config::{DataType, TransformConfig, TransformConfigDefinition};
 use crate::types::{parse_conversion_map, Conversion};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -14,8 +14,11 @@ pub struct CoercerConfig {
     pub types: HashMap<Atom, String>,
 }
 
-#[typetag::serde(name = "coercer")]
-impl crate::topology::config::TransformConfig for CoercerConfig {
+inventory::submit! {
+    TransformConfigDefinition::new::<CoercerConfig>("coercer")
+}
+
+impl TransformConfig for CoercerConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         let types = parse_conversion_map(&self.types)?;
         Ok(Box::new(Coercer { types }))

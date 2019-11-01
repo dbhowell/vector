@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::{self, Event, ValueKind},
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     types::{parse_check_conversion_map, Conversion},
 };
 use regex::bytes::{CaptureLocations, Regex};
@@ -34,7 +34,10 @@ impl Default for RegexParserConfig {
     }
 }
 
-#[typetag::serde(name = "regex_parser")]
+inventory::submit! {
+    TransformConfigDefinition::new::<RegexParserConfig>("regex_parser")
+}
+
 impl TransformConfig for RegexParserConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         let field = self.field.as_ref().unwrap_or(&event::MESSAGE);

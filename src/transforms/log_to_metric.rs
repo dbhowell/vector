@@ -3,7 +3,7 @@ use crate::{
     event::metric::Metric,
     event::{self, ValueKind},
     template::Template,
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     Event,
 };
 use indexmap::IndexMap;
@@ -68,7 +68,10 @@ pub struct LogToMetric {
     config: LogToMetricConfig,
 }
 
-#[typetag::serde(name = "log_to_metric")]
+inventory::submit! {
+    TransformConfigDefinition::new::<LogToMetricConfig>("log_to_metric")
+}
+
 impl TransformConfig for LogToMetricConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         Ok(Box::new(LogToMetric::new(self.clone())))

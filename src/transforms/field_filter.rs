@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
-    topology::config::{DataType, TransformConfig},
-    Event,
+    event::Event,
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
 };
 use serde::{Deserialize, Serialize};
 use string_cache::DefaultAtom as Atom;
@@ -13,7 +13,10 @@ pub struct FieldFilterConfig {
     pub value: String,
 }
 
-#[typetag::serde(name = "field_filter")]
+inventory::submit! {
+    TransformConfigDefinition::new::<FieldFilterConfig>("field_filter")
+}
+
 impl TransformConfig for FieldFilterConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         Ok(Box::new(FieldFilter::new(

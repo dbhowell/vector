@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::{self, Event},
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     types::{parse_conversion_map, Conversion},
 };
 use grok::Pattern;
@@ -28,7 +28,10 @@ pub struct GrokParserConfig {
     pub types: HashMap<Atom, String>,
 }
 
-#[typetag::serde(name = "grok_parser")]
+inventory::submit! {
+    TransformConfigDefinition::new::<GrokParserConfig>("grok_parser")
+}
+
 impl TransformConfig for GrokParserConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         let field = self.field.as_ref().unwrap_or(&event::MESSAGE);

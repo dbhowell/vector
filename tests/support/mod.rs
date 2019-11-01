@@ -12,7 +12,7 @@ use vector::event::{Event, Metric, ValueKind, MESSAGE};
 use vector::sinks::{util::SinkExt, Healthcheck, RouterSink};
 use vector::sources::Source;
 use vector::topology::config::{
-    DataType, GlobalOptions, SinkConfig, SourceConfig, TransformConfig,
+    DataType, GlobalOptions, SinkConfig, SourceConfig, TransformConfig, TransformConfigDefinition,
 };
 use vector::transforms::Transform;
 
@@ -142,7 +142,10 @@ impl MockTransformConfig {
     }
 }
 
-#[typetag::serde(name = "mock")]
+inventory::submit! {
+    TransformConfigDefinition::new::<MockTransformConfig>("mock")
+}
+
 impl TransformConfig for MockTransformConfig {
     fn build(&self) -> Result<Box<dyn Transform>, vector::Error> {
         Ok(Box::new(MockTransform {

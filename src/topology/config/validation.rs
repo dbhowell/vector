@@ -171,8 +171,8 @@ impl From<&Config> for Graph {
         for (name, config) in config.transforms.iter() {
             graph.add_transform(
                 name,
-                config.inner.input_type(),
-                config.inner.output_type(),
+                config.inner.config().input_type(),
+                config.inner.config().output_type(),
                 config.inputs.clone(),
             );
         }
