@@ -53,6 +53,19 @@ where
         types.sort();
         types
     }
+
+    /// Creates a mock ComponentConfig for a T. Attempting to serialize this
+    /// value will result in an empty config.
+    pub fn mock(t: T) -> Self {
+        use std::collections::BTreeMap;
+        Self {
+            swap_out: ConfigSwapOut {
+                type_str: "mock".to_owned(),
+                nested: Value::Table(BTreeMap::new()),
+            },
+            component: t,
+        }
+    }
 }
 
 impl<T> Serialize for ComponentConfig<T>
