@@ -23,73 +23,38 @@ inventory::submit! {
 
 #[cfg(test)]
 mod test {
-    use crate::{conditions::ConditionConfig, Event};
+    use crate::{conditions::BoxCondition, topology::config::component::ConfigSwapOut, Event};
 
     #[test]
     fn parse_static_config() {
-        let config_false: ConditionConfig = toml::from_str(
-            r#"
-      type = "static"
-      value = false
-      "#,
-        )
-        .unwrap();
-
         assert_eq!(
             Ok(false),
-            config_false
-                .component
-                .inner
-                .check(&Event::from("foo bar baz".to_owned()))
+            toml::from_str::<ConfigSwapOut>(
+                r#"
+            type = "static"
+            value = false
+            "#,
+            )
+            .unwrap()
+            .try_into::<BoxCondition>()
+            .unwrap()
+            .inner
+            .check(&Event::from("foo bar baz".to_owned()))
         );
-
-        let config_true: ConditionConfig = toml::from_str(
-            r#"
-      type = "static"
-      value = true
-      "#,
-        )
-        .unwrap();
 
         assert_eq!(
             Ok(true),
-            config_true
-                .component
-                .inner
-                .check(&Event::from("foo bar baz".to_owned()))
-        );
-    }
-
-    #[test]
-    fn print_static_config() {
-        let config_false: ConditionConfig = toml::from_str(
-            r#"
-      type = "static"
-      value = false
-      "#,
-        )
-        .unwrap();
-
-        assert_eq!(
-            r#"type = "static"
-value = false
-"#,
-            toml::to_string(&config_false).unwrap()
-        );
-
-        let config_true: ConditionConfig = toml::from_str(
-            r#"
-      type = "static"
-      value = true
-      "#,
-        )
-        .unwrap();
-
-        assert_eq!(
-            r#"type = "static"
-value = true
-"#,
-            toml::to_string(&config_true).unwrap()
+            toml::from_str::<ConfigSwapOut>(
+                r#"
+            type = "static"
+            value = true
+            "#,
+            )
+            .unwrap()
+            .try_into::<BoxCondition>()
+            .unwrap()
+            .inner
+            .check(&Event::from("foo bar baz".to_owned()))
         );
     }
 }
