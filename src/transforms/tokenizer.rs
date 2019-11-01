@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::{self, Event},
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     types::{parse_check_conversion_map, Conversion},
 };
 use nom::{
@@ -26,7 +26,10 @@ pub struct TokenizerConfig {
     pub types: HashMap<Atom, String>,
 }
 
-#[typetag::serde(name = "tokenizer")]
+inventory::submit! {
+    TransformConfigDefinition::new::<TokenizerConfig>("tokenizer")
+}
+
 impl TransformConfig for TokenizerConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         let field = self.field.as_ref().unwrap_or(&event::MESSAGE);

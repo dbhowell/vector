@@ -1,6 +1,6 @@
 use super::Transform;
 use crate::{
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
     Event,
 };
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,10 @@ pub struct RemoveFields {
     fields: Vec<Atom>,
 }
 
-#[typetag::serde(name = "remove_fields")]
+inventory::submit! {
+    TransformConfigDefinition::new::<RemoveFieldsConfig>("remove_fields")
+}
+
 impl TransformConfig for RemoveFieldsConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         Ok(Box::new(RemoveFields::new(self.fields.clone())))

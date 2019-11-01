@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::{self, Event},
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
 };
 use regex::RegexSet; // TODO: use regex::bytes
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,10 @@ pub struct SamplerConfig {
     pub pass_list: Vec<String>,
 }
 
-#[typetag::serde(name = "sampler")]
+inventory::submit! {
+    TransformConfigDefinition::new::<SamplerConfig>("sampler")
+}
+
 impl TransformConfig for SamplerConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         Ok(RegexSet::new(&self.pass_list)

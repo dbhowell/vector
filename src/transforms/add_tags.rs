@@ -1,7 +1,7 @@
 use super::Transform;
 use crate::{
     event::Event,
-    topology::config::{DataType, TransformConfig},
+    topology::config::{DataType, TransformConfig, TransformConfigDefinition},
 };
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,10 @@ pub struct AddTags {
     tags: IndexMap<Atom, String>,
 }
 
-#[typetag::serde(name = "add_tags")]
+inventory::submit! {
+    TransformConfigDefinition::new::<AddTagsConfig>("add_tags")
+}
+
 impl TransformConfig for AddTagsConfig {
     fn build(&self) -> crate::Result<Box<dyn Transform>> {
         Ok(Box::new(AddTags::new(self.tags.clone())))

@@ -1,4 +1,5 @@
 use crate::{event::Event, sinks, sources, transforms};
+use component::{ComponentBuilder, ConfigSwapOut};
 use futures::sync::mpsc;
 use indexmap::IndexMap; // IndexMap preserves insertion order, allowing us to output errors in the same order they are present in the file
 use serde::{Deserialize, Serialize};
@@ -143,10 +144,11 @@ pub trait SinkConfig: core::fmt::Debug {
 pub struct TransformOuter {
     pub inputs: Vec<String>,
     #[serde(flatten)]
-    pub inner: Box<dyn TransformConfig>,
+    pub swap_out: Option<ConfigSwapOut>,
+    #[serde(skip)]
+    pub inner: Option<Box<dyn TransformConfig>>,
 }
 
-#[typetag::serde(tag = "type")]
 pub trait TransformConfig: core::fmt::Debug {
     fn build(&self) -> crate::Result<Box<dyn transforms::Transform>>;
 
@@ -154,6 +156,25 @@ pub trait TransformConfig: core::fmt::Debug {
 
     fn output_type(&self) -> DataType;
 }
+
+pub struct BoxTransformConfig {
+    pub inner: Box<dyn TransformConfig>,
+}
+
+impl<T> From<T> for BoxTransformConfig
+where
+    T: TransformConfig + 'static,
+{
+    fn from(inner: T) -> Self {
+        BoxTransformConfig {
+            inner: Box::new(inner),
+        }
+    }
+}
+
+pub type TransformConfigDefinition = ComponentBuilder<BoxTransformConfig>;
+
+inventory::collect!(TransformConfigDefinition);
 
 // Helper methods for programming construction during tests
 impl Config {
@@ -190,7 +211,8 @@ impl Config {
     ) {
         let inputs = inputs.iter().map(|&s| s.to_owned()).collect::<Vec<_>>();
         let transform = TransformOuter {
-            inner: Box::new(transform),
+            swap_out: None,
+            inner: Some(Box::new(transform)),
             inputs,
         };
 
@@ -211,7 +233,27 @@ impl Config {
         }
         let with_vars = vars::interpolate(&source_string, &vars);
 
-        toml::from_str(&with_vars).map_err(|e| vec![e.to_string()])
+        toml::from_str(&with_vars)
+            .map_err(|e| vec![e.to_string()])
+            .and_then(|mut c: Config| {
+                let mut errors = vec![];
+                for (name, transform) in &mut c.transforms {
+                    match transform
+                        .swap_out
+                        .as_ref()
+                        .ok_or(format!("configuration missing for transform '{}'", name).into())
+                        .and_then(|s| s.clone().try_into::<BoxTransformConfig>())
+                    {
+                        Ok(c) => transform.inner = Some(c.inner),
+                        Err(e) => errors.push(e),
+                    }
+                }
+                if errors.is_empty() {
+                    Ok(c)
+                } else {
+                    Err(errors)
+                }
+            })
     }
 
     pub fn contains_cycle(&self) -> bool {

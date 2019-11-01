@@ -168,13 +168,11 @@ impl From<&Config> for Graph {
             graph.add_source(name, config.output_type());
         }
 
+        // TODO: Error out if a transform isn't configured.
         for (name, config) in config.transforms.iter() {
-            graph.add_transform(
-                name,
-                config.inner.input_type(),
-                config.inner.output_type(),
-                config.inputs.clone(),
-            );
+            config.inner.as_ref().map(|i| {
+                graph.add_transform(name, i.input_type(), i.output_type(), config.inputs.clone());
+            });
         }
 
         for (name, config) in config.sinks.iter() {
